@@ -5,13 +5,23 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>poker</title>
 </head>
 
 <body>
     <div id="container" style="margin-top: 30px;">
     </div>
 </body>
+<style>
+    #container {
+        position: absolute;
+        bottom: 0;
+    }
+
+    .card-selected {
+        transform: translateY(-16px);
+    }
+</style>
 <script src="../release/poker.min.js"></script>
 <script>
 
@@ -91,13 +101,22 @@
         cards_A = cards_A.sort((a, b) => {
             return b.Value - a.Value;
         });
-        for (const card of cards_A) {
+        for (const k in cards_A) {
+            card = cards_A[k]
             nodeImg = document.createElement("img");
+            if (k != 0) {
+                nodeImg.style.marginLeft = `-60px`;
+            }
+            nodeImg.style.zIndex = `${k}`;
             nodeImg.src = card.Img;
             nodeImg.title = card.Point + '-' + card.Suit;
             nodeImg.value = card.Value;
             nodeImg.onclick = (a) => {
-                a.target.style.transform = a.target.style.transform === 'translateY(-16px)' ? '' : 'translateY(-16px)';
+                if (a.target.classList.contains('card-selected')) {
+                    a.target.classList.remove('card-selected')
+                } else {
+                   a.target.classList.add('card-selected')
+                }
             }
             container.appendChild(nodeImg)
         }
