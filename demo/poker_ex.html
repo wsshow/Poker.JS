@@ -21,6 +21,14 @@
     .card-selected {
         transform: translateY(-16px);
     }
+
+    .unselectable {
+        -moz-user-select: -moz-none;
+        -khtml-user-select: none;
+        -webkit-user-select: none;
+        -o-user-select: none;
+        user-select: none;
+    }
 </style>
 <script src="../release/poker.min.js"></script>
 <script>
@@ -96,11 +104,19 @@
 
         // 展示卡组
         let container = document.getElementById('container');
-        let nodeImg;
+        let nodeImg, bLeftMouseDown = false;
         let cards_A = cards.slice(0, 16);
         cards_A = cards_A.sort((a, b) => {
             return b.Value - a.Value;
         });
+        // 选择卡片动作
+        function SelectedCard(e) {
+            if (e.target.classList.contains('card-selected')) {
+                e.target.classList.remove('card-selected')
+            } else {
+                e.target.classList.add('card-selected')
+            }
+        }
         for (const k in cards_A) {
             card = cards_A[k]
             nodeImg = document.createElement("img");
@@ -112,15 +128,28 @@
             nodeImg.src = card.Img;
             nodeImg.title = card.Point + '-' + card.Suit;
             nodeImg.value = card.Value;
-            nodeImg.onclick = (a) => {
-                if (a.target.classList.contains('card-selected')) {
-                    a.target.classList.remove('card-selected')
-                } else {
-                   a.target.classList.add('card-selected')
-                }
+            nodeImg.onclick = (e) => {
+                SelectedCard(e);
             }
+            nodeImg.onmouseenter = (e) => {
+                if (bLeftMouseDown) {
+                    SelectedCard(e);
+                }
+            };
+            // 禁止图片选中或拖动
+            nodeImg.draggable = false;
+            nodeImg.classList.add('unselectable');
             container.appendChild(nodeImg)
         }
+
+        document.onmousedown = (e) => {
+            bLeftMouseDown = true;
+        }
+        document.onmouseup = (e) => {
+            bLeftMouseDown = false;
+        }
+        // 禁止全局右键菜单
+        document.oncontextmenu = () => false;
     } else {
         document.body.innerHTML = 'This browser does not support canvas.';
     }
