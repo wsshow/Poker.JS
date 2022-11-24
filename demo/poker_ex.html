@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="container">
+        &nbsp;
+    </div>
+</body>
+<script src="../release/poker.min.js"></script>
+<script>
+
+    if (window.Poker) {
+
+        class Card {
+            constructor(point, suit, img, value) {
+                this.Point = point;
+                this.Suit = suit;
+                this.Img = img;
+                this.Value = value;
+            }
+        }
+
+        let mapValue = {
+            '3': 3,
+            '4': 4,
+            '5': 5,
+            '6': 6,
+            '7': 7,
+            '8': 8,
+            '9': 9,
+            '10': 10,
+            'j': 11,
+            'q': 12,
+            'k': 13,
+            'a': 14,
+            '2': 15,
+            'jokers': 16,
+            'jokerh': 17,
+        }
+
+        // 生成卡组
+        console.time('GenerateCardTime');
+        let suits = ['hearts', 'diamonds', 'spades', 'clubs'];
+        let points = ['a', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'j', 'q', 'k'];
+        let cards = []
+        let point, suit, img, card;
+        for (const ks in suits) {
+            for (const kp in points) {
+                point = points[kp]
+                suit = suits[ks];
+                img = Poker.getCardData(120, suit, point);
+                card = new Card(point, suit, img, mapValue[point])
+                cards.push(card)
+            }
+        }
+        card = new Card('jokers', 'spades', Poker.getCardData(120, 'spades', 'joker'), mapValue['jokers'])
+        cards.push(card)
+        card = new Card('jokerh', 'hearts', Poker.getCardData(120, 'hearts', 'joker'), mapValue['jokerh'])
+        cards.push(card)
+        // cards.forEach(card => {
+        //     console.log(card);
+        // });
+        console.log('cards length:', cards.length);
+        console.timeEnd('GenerateCardTime');
+
+        // 洗牌算法
+        function Shuffle(arr) {
+            let len = arr.length, random
+            while (len != 0) {
+                random = (Math.random() * len--) >>> 0;
+                [arr[len], arr[random]] = [arr[random], arr[len]]
+            }
+            return arr
+        }
+
+        // 洗牌
+        console.time('ShuffleTime');
+        cards = Shuffle(cards)
+        console.timeEnd('ShuffleTime');
+
+        // 展示卡组
+        let container = document.getElementById('container');
+        let nodeImg;
+        let cards_A = cards.slice(0, 16);
+        cards_A = cards_A.sort((a, b) => {
+            return b.Value - a.Value;
+        });
+        for (const card of cards_A) {
+            nodeImg = document.createElement("img");
+            nodeImg.src = card.Img;
+            nodeImg.title = card.Point + '-' + card.Suit;
+            nodeImg.value = card.Value;
+            nodeImg.onclick = (a) => console.log(a.target.title, a.target.value);
+            container.appendChild(nodeImg)
+        }
+    } else {
+        document.body.innerHTML = 'This browser does not support canvas.';
+    }
+
+
+</script>
+
+</html>
