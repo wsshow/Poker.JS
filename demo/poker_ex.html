@@ -105,9 +105,10 @@
             card = cards_A[k]
             nodeImg = document.createElement("img");
             if (k != 0) {
-                nodeImg.style.marginLeft = `-60px`;
+                nodeImg.style.marginLeft = '-65px';
+                nodeImg.style.position = 'relative';
+                nodeImg.style.zIndex = k;
             }
-            nodeImg.style.zIndex = `${k}`;
             nodeImg.src = card.Img;
             nodeImg.title = card.Point + '-' + card.Suit;
             nodeImg.value = card.Value;
