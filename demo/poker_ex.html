@@ -9,13 +9,35 @@
 </head>
 
 <body>
-    <div id="container" style="margin-top: 30px;">
-    </div>
+    <div id="container-center"></div>
+    <div id="container-left"></div>
+    <div id="container-right"></div>
 </body>
 <style>
-    #container {
+    * {
+        margin: 0;
+        padding: 0
+    }
+
+    #container-center {
+        width: 570px;
+        height: 120px;
         position: absolute;
-        bottom: 0;
+        border: 1px solid blue;
+    }
+
+    #container-left {
+        width: 100px;
+        height: 100px;
+        position: absolute;
+        border: 1px solid skyblue;
+    }
+
+    #container-right {
+        width: 100px;
+        height: 100px;
+        position: absolute;
+        border: 1px solid orange;
     }
 
     .card-selected {
@@ -103,7 +125,7 @@
         console.timeEnd('ShuffleTime');
 
         // 展示卡组
-        let container = document.getElementById('container');
+        let container = document.getElementById('container-center');
         let nodeImg, bLeftMouseDown = false;
         let cards_A = cards.slice(0, 16);
         cards_A = cards_A.sort((a, b) => {
@@ -121,7 +143,7 @@
             card = cards_A[k]
             nodeImg = document.createElement("img");
             if (k != 0) {
-                nodeImg.style.marginLeft = '-65px';
+                nodeImg.style.marginLeft = '-60px';
                 nodeImg.style.position = 'relative';
                 nodeImg.style.zIndex = k;
             }
@@ -153,8 +175,37 @@
     } else {
         document.body.innerHTML = 'This browser does not support canvas.';
     }
+</script>
+<script>
+    window.onload = function () {
+        function box() {
+            //获取DIV为‘box’的盒子
+            var oBox = document.getElementById('container-center');
+            var oBoxLeft = document.getElementById('container-left');
+            var oBoxRight = document.getElementById('container-right');
+            //获取元素自身的宽度
+            var L1 = oBox.offsetWidth;
+            //获取元素自身的高度
+            var H1 = oBox.offsetHeight;
+            //获取实际页面的left值。(页面宽度减去元素自身宽度/2)
+            var Left = (document.documentElement.clientWidth - L1) / 2;
+            //获取实际页面的top值。(页面宽度减去元素自身高度/2)
+            var top = (document.documentElement.clientHeight - H1) / 2;
+            oBox.style.left = Left + 'px';
+            oBox.style.top = 1.5 * top + 'px';
 
+            oBoxLeft.style.left = oBox.style.left;
+            oBoxLeft.style.top = 0.5 * top + 'px';
 
+            oBoxRight.style.left = oBox.style.left + L1 + 'px';
+            oBoxRight.style.top = 0.5 * top + 'px';
+        }
+        box();
+        //当浏览器页面发生改变时，DIV随着页面的改变居中。
+        window.onresize = function () {
+            box();
+        }
+    }
 </script>
 
 </html>
