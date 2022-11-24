@@ -9,8 +9,7 @@
 </head>
 
 <body>
-    <div id="container">
-        &nbsp;
+    <div id="container" style="margin-top: 30px;">
     </div>
 </body>
 <script src="../release/poker.min.js"></script>
@@ -97,7 +96,9 @@
             nodeImg.src = card.Img;
             nodeImg.title = card.Point + '-' + card.Suit;
             nodeImg.value = card.Value;
-            nodeImg.onclick = (a) => console.log(a.target.title, a.target.value);
+            nodeImg.onclick = (a) => {
+                a.target.style.transform = a.target.style.transform === 'translateY(-16px)' ? '' : 'translateY(-16px)';
+            }
             container.appendChild(nodeImg)
         }
     } else {
