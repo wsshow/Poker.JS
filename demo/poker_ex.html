@@ -6,10 +6,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>poker</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/bulma/0.9.4/css/bulma.min.css">
 </head>
 
 <body>
-    <div id="container-center"></div>
+    <div id="self-show-card"></div>
+    <div id="self-button-group">
+        <button class="button is-info">出牌</button>
+        <button class="button is-warning">取消</button>
+        <button class="button is-danger">不出</button>
+    </div>
+    <div id="container-self"></div>
     <div id="container-left"></div>
     <div id="container-right"></div>
 </body>
@@ -19,11 +26,10 @@
         padding: 0
     }
 
-    #container-center {
-        width: 570px;
+    #container-self {
+        width: 540px;
         height: 120px;
         position: absolute;
-        border: 1px solid blue;
     }
 
     #container-left {
@@ -38,6 +44,10 @@
         height: 100px;
         position: absolute;
         border: 1px solid orange;
+    }
+
+    #self-button-group {
+        position: absolute;
     }
 
     .card-selected {
@@ -125,7 +135,7 @@
         console.timeEnd('ShuffleTime');
 
         // 展示卡组
-        let container = document.getElementById('container-center');
+        let container = document.getElementById('container-self');
         let nodeImg, bLeftMouseDown = false;
         let cards_A = cards.slice(0, 16);
         cards_A = cards_A.sort((a, b) => {
@@ -178,32 +188,42 @@
 </script>
 <script>
     window.onload = function () {
-        function box() {
-            //获取DIV为‘box’的盒子
-            var oBox = document.getElementById('container-center');
-            var oBoxLeft = document.getElementById('container-left');
-            var oBoxRight = document.getElementById('container-right');
-            //获取元素自身的宽度
-            var L1 = oBox.offsetWidth;
-            //获取元素自身的高度
-            var H1 = oBox.offsetHeight;
-            //获取实际页面的left值。(页面宽度减去元素自身宽度/2)
-            var Left = (document.documentElement.clientWidth - L1) / 2;
-            //获取实际页面的top值。(页面宽度减去元素自身高度/2)
-            var top = (document.documentElement.clientHeight - H1) / 2;
-            oBox.style.left = Left + 'px';
-            oBox.style.top = 1.5 * top + 'px';
+        function Autosize() {
+            var selfCardGroup = document.getElementById('container-self');
+            var leftCardGroup = document.getElementById('container-left');
+            var rightCardGroup = document.getElementById('container-right');
+            var selfCardGroupWidth = selfCardGroup.offsetWidth;
+            var selfCardGroupHeight = selfCardGroup.offsetHeight;
+            var posLeft = (document.documentElement.clientWidth - selfCardGroupWidth) >> 1;
+            var posTop = (document.documentElement.clientHeight - selfCardGroupHeight) >> 1;
 
-            oBoxLeft.style.left = oBox.style.left;
-            oBoxLeft.style.top = 0.5 * top + 'px';
+            // 设置牌组放置位置
+            selfCardGroup.style.left = posLeft + 'px';
+            selfCardGroup.style.top = 1.5 * posTop + 'px';
 
-            oBoxRight.style.left = oBox.style.left + L1 + 'px';
-            oBoxRight.style.top = 0.5 * top + 'px';
+            leftCardGroup.style.left = `${parseInt(selfCardGroup.style.left, 10) - leftCardGroup.offsetWidth}px`;
+            leftCardGroup.style.top = 0.5 * posTop + 'px';
+
+            rightCardGroup.style.left = `${parseInt(selfCardGroup.style.left, 10) + selfCardGroupWidth}px`;
+            rightCardGroup.style.top = 0.5 * posTop + 'px';
+
+            // 设置按钮组位置
+            var selfButtonGroup = document.getElementById('self-button-group');
+            selfButtonGroup.style.left = selfCardGroup.style.left;
+            selfButtonGroup.style.top = `${parseInt(selfCardGroup.style.top, 10) - 2 * selfButtonGroup.offsetHeight}px`;
+            selfButtonGroup.style.width = selfCardGroup.offsetWidth + 'px';
+
+            // 计算并设置按钮间隔距离
+            let buttons = document.querySelectorAll('button');
+            let intervalOfButton = ((selfCardGroup.offsetWidth - 300) - 3 * buttons[0].offsetWidth) >> 1;
+            buttons[0].style.marginLeft = '150px';
+            buttons[1].style.marginLeft = `${intervalOfButton}px`;
+            buttons[2].style.marginLeft = `${intervalOfButton}px`;
         }
-        box();
-        //当浏览器页面发生改变时，DIV随着页面的改变居中。
+        Autosize();
+        //当浏览器页面发生改变时，自适应
         window.onresize = function () {
-            box();
+            Autosize();
         }
     }
 </script>
