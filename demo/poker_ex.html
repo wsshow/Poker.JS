@@ -10,6 +10,12 @@
 </head>
 
 <body>
+    <div id="clock" class="control" style="display: none;">
+        <div class="tags has-addons">
+            <span class="tag is-link">剩余出牌时间(秒)</span>
+            <span id="clock-t" class="tag is-danger">30</span>
+        </div>
+    </div>
     <div id="self-show-card"></div>
     <div id="left-show-card"></div>
     <div id="right-show-card"></div>
@@ -34,11 +40,36 @@
         <span class="tag is-info">称号</span>
     </div>
     <div id="container-right">
-        <span class="tag is-success">身份</span>
-        <span class="tag is-primary">120万</span>
-        <span class="tag is-info">17</span>
-        <span class="tag is-warning">昵称</span>
-        <span class="tag is-info">称号</span>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-dark">身份</span>
+                <span class="tag is-info">地主</span>
+            </div>
+        </div>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-dark">资金</span>
+                <span class="tag is-info">120万</span>
+            </div>
+        </div>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-dark">牌数</span>
+                <span class="tag is-info">17</span>
+            </div>
+        </div>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-dark">昵称</span>
+                <span class="tag is-info">小熊维尼</span>
+            </div>
+        </div>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-dark">称号</span>
+                <span class="tag is-info">大学士</span>
+            </div>
+        </div>
     </div>
 </body>
 <style>
@@ -47,8 +78,12 @@
         padding: 0
     }
 
-    div span {
+    /* div span {
         width: 100%;
+    } */
+
+    .control {
+        margin-top: 1px;
     }
 
     #self-info {
@@ -229,6 +264,7 @@
         cards_B = cards_B.sort((a, b) => {
             return b.Value - a.Value;
         });
+        // cards_B = cards_B.slice(0, 2);
         let leftShowCard = document.getElementById('left-show-card');
         for (const k in cards_B) {
             card = cards_B[k]
@@ -260,6 +296,7 @@
         cards_C = cards_C.sort((a, b) => {
             return b.Value - a.Value;
         });
+        // cards_C = cards_C.slice(0, 2);
         let rightShowCard = document.getElementById('right-show-card');
         for (const k in cards_C) {
             card = cards_C[k]
@@ -297,6 +334,21 @@
 
         // 禁止全局右键菜单
         document.oncontextmenu = () => false;
+
+        // 出牌倒计时
+        function CardClock() {
+            let eleClock = document.getElementById('clock');
+            eleClock.style.display = '';
+            let eleClockT = document.getElementById('clock-t');
+            let tm = 30;
+            let intervalID = window.setInterval(() => {
+                if (--tm == 0) {
+                    clearInterval(intervalID)
+                    eleClock.style.display = 'none';
+                }
+                eleClockT.innerHTML = tm;
+            }, 1000);
+        }
 
         window.onload = function () {
 
@@ -372,9 +424,15 @@
                 let rightShowCard = document.getElementById('right-show-card');
                 rightShowCard.style.left = `${document.documentElement.clientWidth - selfCardGroupWidth}px`;
                 rightShowCard.style.top = `${0.7 * posTop}px`;
+                
+                // 设置自己定时器的位置
+                let eleClock = document.getElementById('clock');
+                eleClock.style.left = 0.9 * posLeft + 'px'
+                eleClock.style.top = `${parseInt(selfButtonGroup.style.top, 10) + 5}px`;
             }
 
             Autosize();
+            CardClock();
 
             //当浏览器页面发生改变时自适应
             window.onresize = () => Autosize();
