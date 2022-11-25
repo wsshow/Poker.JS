@@ -12,18 +12,47 @@
 <body>
     <div id="self-show-card"></div>
     <div id="self-button-group">
-        <button class="button is-info">出牌</button>
-        <button class="button is-warning">取消</button>
-        <button class="button is-danger">不出</button>
+        <button class="button is-info" id="playCard">出牌</button>
+        <button class="button is-warning" id="playCancel">取消</button>
+        <button class="button is-danger" id="playNone">不出</button>
+    </div>
+    <div id="self-info">
+        <span class="tag is-success">身份</span>
+        <span class="tag is-primary">120万</span>
+        <span class="tag is-link">17</span>
+        <span class="tag is-warning">昵称</span>
+        <span class="tag is-info">称号</span>
     </div>
     <div id="container-self"></div>
-    <div id="container-left"></div>
-    <div id="container-right"></div>
+    <div id="container-left">
+        <span class="tag is-success">身份</span>
+        <span class="tag is-primary">120万</span>
+        <span class="tag is-info">17</span>
+        <span class="tag is-warning">昵称</span>
+        <span class="tag is-info">称号</span>
+    </div>
+    <div id="container-right">
+        <span class="tag is-success">身份</span>
+        <span class="tag is-primary">120万</span>
+        <span class="tag is-info">17</span>
+        <span class="tag is-warning">昵称</span>
+        <span class="tag is-info">称号</span>
+    </div>
 </body>
 <style>
     * {
         margin: 0;
         padding: 0
+    }
+
+    div span {
+        width: 100%;
+    }
+
+    #self-info {
+        width: 120px;
+        height: 120px;
+        position: absolute;
     }
 
     #container-self {
@@ -33,20 +62,26 @@
     }
 
     #container-left {
-        width: 100px;
-        height: 100px;
+        width: 120px;
+        height: 120px;
         position: absolute;
         border: 1px solid skyblue;
     }
 
     #container-right {
-        width: 100px;
-        height: 100px;
+        width: 120px;
+        height: 120px;
         position: absolute;
         border: 1px solid orange;
     }
 
     #self-button-group {
+        position: absolute;
+    }
+
+    #self-show-card {
+        width: 540px;
+        height: 60px;
         position: absolute;
     }
 
@@ -141,14 +176,16 @@
         cards_A = cards_A.sort((a, b) => {
             return b.Value - a.Value;
         });
+
         // 选择卡片动作
-        function SelectedCard(e) {
-            if (e.target.classList.contains('card-selected')) {
-                e.target.classList.remove('card-selected')
+        function SelectedCard(el) {
+            if (el.classList.contains('card-selected')) {
+                el.classList.remove('card-selected');
             } else {
-                e.target.classList.add('card-selected')
+                el.classList.add('card-selected');
             }
         }
+
         for (const k in cards_A) {
             card = cards_A[k]
             nodeImg = document.createElement("img");
@@ -160,12 +197,12 @@
             nodeImg.src = card.Img;
             nodeImg.title = card.Point + '-' + card.Suit;
             nodeImg.value = card.Value;
-            nodeImg.onclick = (e) => {
-                SelectedCard(e);
-            }
+            nodeImg.onmousedown = (e) => {
+                SelectedCard(e.target);
+            };
             nodeImg.onmouseenter = (e) => {
                 if (bLeftMouseDown) {
-                    SelectedCard(e);
+                    SelectedCard(e.target);
                 }
             };
             // 禁止图片选中或拖动
@@ -177,25 +214,48 @@
         document.onmousedown = (e) => {
             bLeftMouseDown = true;
         }
+
         document.onmouseup = (e) => {
             bLeftMouseDown = false;
         }
+
         // 禁止全局右键菜单
         document.oncontextmenu = () => false;
+
     } else {
         document.body.innerHTML = 'This browser does not support canvas.';
     }
 </script>
 <script>
     window.onload = function () {
+
+        document.getElementById('playCard').addEventListener('click', () => {
+            let selfShowCard = document.getElementById('self-show-card');
+            selfShowCard.innerHTML = '';
+            let playCards = document.querySelectorAll('img.card-selected');
+            for (let nodeImg of playCards) {
+                nodeImg.onmousedown = () => { };
+                nodeImg.onmouseenter = () => { };
+                nodeImg.style.transform = `scale(0.8)`;
+                selfShowCard.appendChild(nodeImg)
+            }
+        })
+
+        document.getElementById('playCancel').addEventListener('click', () => {
+            let playCards = document.querySelectorAll('img.card-selected');
+            for (let nodeImg of playCards) {
+                nodeImg.classList.remove('card-selected');
+            }
+        })
+
         function Autosize() {
-            var selfCardGroup = document.getElementById('container-self');
-            var leftCardGroup = document.getElementById('container-left');
-            var rightCardGroup = document.getElementById('container-right');
-            var selfCardGroupWidth = selfCardGroup.offsetWidth;
-            var selfCardGroupHeight = selfCardGroup.offsetHeight;
-            var posLeft = (document.documentElement.clientWidth - selfCardGroupWidth) >> 1;
-            var posTop = (document.documentElement.clientHeight - selfCardGroupHeight) >> 1;
+            let selfCardGroup = document.getElementById('container-self');
+            let leftCardGroup = document.getElementById('container-left');
+            let rightCardGroup = document.getElementById('container-right');
+            let selfCardGroupWidth = selfCardGroup.offsetWidth;
+            let selfCardGroupHeight = selfCardGroup.offsetHeight;
+            let posLeft = (document.documentElement.clientWidth - selfCardGroupWidth) >> 1;
+            let posTop = (document.documentElement.clientHeight - selfCardGroupHeight) >> 1;
 
             // 设置牌组放置位置
             selfCardGroup.style.left = posLeft + 'px';
@@ -207,8 +267,13 @@
             rightCardGroup.style.left = `${parseInt(selfCardGroup.style.left, 10) + selfCardGroupWidth}px`;
             rightCardGroup.style.top = 0.5 * posTop + 'px';
 
+            // 设置自身信息位置
+            let selfInfo = document.getElementById('self-info');
+            selfInfo.style.left = `${posLeft - selfInfo.offsetWidth}px`;
+            selfInfo.style.top = selfCardGroup.style.top;
+
             // 设置按钮组位置
-            var selfButtonGroup = document.getElementById('self-button-group');
+            let selfButtonGroup = document.getElementById('self-button-group');
             selfButtonGroup.style.left = selfCardGroup.style.left;
             selfButtonGroup.style.top = `${parseInt(selfCardGroup.style.top, 10) - 2 * selfButtonGroup.offsetHeight}px`;
             selfButtonGroup.style.width = selfCardGroup.offsetWidth + 'px';
@@ -219,12 +284,18 @@
             buttons[0].style.marginLeft = '150px';
             buttons[1].style.marginLeft = `${intervalOfButton}px`;
             buttons[2].style.marginLeft = `${intervalOfButton}px`;
+
+            // 设置出牌展示区位置
+            let selfShowCard = document.getElementById('self-show-card');
+            selfShowCard.style.left = `${posLeft + 100}px`;
+            selfShowCard.style.top = `${parseInt(selfButtonGroup.style.top, 10) - 1.5 * selfCardGroupHeight}px`;
         }
+
         Autosize();
-        //当浏览器页面发生改变时，自适应
-        window.onresize = function () {
-            Autosize();
-        }
+
+        //当浏览器页面发生改变时自适应
+        window.onresize = () => Autosize();
+
     }
 </script>
 
