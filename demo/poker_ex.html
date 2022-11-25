@@ -11,6 +11,8 @@
 
 <body>
     <div id="self-show-card"></div>
+    <div id="left-show-card"></div>
+    <div id="right-show-card"></div>
     <div id="self-button-group">
         <button class="button is-info" id="playCard">出牌</button>
         <button class="button is-warning" id="playCancel">取消</button>
@@ -56,7 +58,7 @@
     }
 
     #container-self {
-        width: 540px;
+        width: 570px;
         height: 120px;
         position: absolute;
     }
@@ -80,7 +82,19 @@
     }
 
     #self-show-card {
-        width: 540px;
+        width: 570px;
+        height: 60px;
+        position: absolute;
+    }
+
+    #left-show-card {
+        width: 570px;
+        height: 60px;
+        position: absolute;
+    }
+
+    #right-show-card {
+        width: 570px;
         height: 60px;
         position: absolute;
     }
@@ -172,7 +186,7 @@
         // 展示卡组
         let container = document.getElementById('container-self');
         let nodeImg, bLeftMouseDown = false;
-        let cards_A = cards.slice(0, 16);
+        let cards_A = cards.slice(0, 17);
         cards_A = cards_A.sort((a, b) => {
             return b.Value - a.Value;
         });
@@ -211,6 +225,68 @@
             container.appendChild(nodeImg)
         }
 
+        let cards_B = cards.slice(17, 34);
+        cards_B = cards_B.sort((a, b) => {
+            return b.Value - a.Value;
+        });
+        let leftShowCard = document.getElementById('left-show-card');
+        for (const k in cards_B) {
+            card = cards_B[k]
+            nodeImg = document.createElement("img");
+            if (k != 0) {
+                nodeImg.style.marginLeft = '-60px';
+                nodeImg.style.position = 'relative';
+                nodeImg.style.zIndex = k;
+            }
+            nodeImg.src = card.Img;
+            nodeImg.title = card.Point + '-' + card.Suit;
+            nodeImg.value = card.Value;
+            nodeImg.onmousedown = (e) => {
+                SelectedCard(e.target);
+            };
+            nodeImg.onmouseenter = (e) => {
+                if (bLeftMouseDown) {
+                    SelectedCard(e.target);
+                }
+            };
+            // 禁止图片选中或拖动
+            nodeImg.draggable = false;
+            nodeImg.classList.add('unselectable');
+            leftShowCard.appendChild(nodeImg)
+        }
+        leftShowCard.style.transform = 'rotate(90deg)'
+
+        let cards_C = cards.slice(34, 51);
+        cards_C = cards_C.sort((a, b) => {
+            return b.Value - a.Value;
+        });
+        let rightShowCard = document.getElementById('right-show-card');
+        for (const k in cards_C) {
+            card = cards_C[k]
+            nodeImg = document.createElement("img");
+            if (k != 0) {
+                nodeImg.style.marginLeft = '-60px';
+                nodeImg.style.position = 'relative';
+                nodeImg.style.zIndex = k;
+            }
+            nodeImg.src = card.Img;
+            nodeImg.title = card.Point + '-' + card.Suit;
+            nodeImg.value = card.Value;
+            nodeImg.onmousedown = (e) => {
+                SelectedCard(e.target);
+            };
+            nodeImg.onmouseenter = (e) => {
+                if (bLeftMouseDown) {
+                    SelectedCard(e.target);
+                }
+            };
+            // 禁止图片选中或拖动
+            nodeImg.draggable = false;
+            nodeImg.classList.add('unselectable');
+            rightShowCard.appendChild(nodeImg)
+        }
+        rightShowCard.style.transform = 'rotate(-90deg)'
+
         document.onmousedown = (e) => {
             bLeftMouseDown = true;
         }
@@ -222,80 +298,89 @@
         // 禁止全局右键菜单
         document.oncontextmenu = () => false;
 
+        window.onload = function () {
+
+            // 监听玩家出牌事件
+            document.getElementById('playCard').addEventListener('click', () => {
+                let selfShowCard = document.getElementById('self-show-card');
+                selfShowCard.innerHTML = '';
+                let playCards = document.querySelectorAll('img.card-selected');
+                for (let nodeImg of playCards) {
+                    nodeImg.onmousedown = () => { };
+                    nodeImg.onmouseenter = () => { };
+                    nodeImg.style.transform = `scale(0.8)`;
+                    selfShowCard.appendChild(nodeImg)
+                }
+            })
+
+            // 监听玩家取消事件
+            document.getElementById('playCancel').addEventListener('click', () => {
+                let playCards = document.querySelectorAll('img.card-selected');
+                for (let nodeImg of playCards) {
+                    nodeImg.classList.remove('card-selected');
+                }
+            })
+
+            function Autosize() {
+                let selfCardGroup = document.getElementById('container-self');
+                let leftCardGroup = document.getElementById('container-left');
+                let rightCardGroup = document.getElementById('container-right');
+                let selfCardGroupWidth = selfCardGroup.offsetWidth;
+                let selfCardGroupHeight = selfCardGroup.offsetHeight;
+                let posLeft = (document.documentElement.clientWidth - selfCardGroupWidth) >> 1;
+                let posTop = (document.documentElement.clientHeight - selfCardGroupHeight) >> 1;
+
+                // 设置牌组放置位置
+                selfCardGroup.style.left = posLeft + 'px';
+                selfCardGroup.style.top = 1.98 * posTop + 'px';
+
+                leftCardGroup.style.left = '0px';
+                leftCardGroup.style.top = 0.5 * posTop + 'px';
+
+                rightCardGroup.style.left = `${document.documentElement.clientWidth - rightCardGroup.offsetWidth}px`;
+                rightCardGroup.style.top = 0.5 * posTop + 'px';
+
+                // 设置自身信息位置
+                let selfInfo = document.getElementById('self-info');
+                selfInfo.style.left = '0px';
+                selfInfo.style.top = 1.98 * posTop + 'px';
+
+                // 设置按钮组位置
+                let selfButtonGroup = document.getElementById('self-button-group');
+                selfButtonGroup.style.left = selfCardGroup.style.left;
+                selfButtonGroup.style.top = `${parseInt(selfCardGroup.style.top, 10) - 2 * selfButtonGroup.offsetHeight}px`;
+                selfButtonGroup.style.width = selfCardGroup.offsetWidth + 'px';
+
+                // 计算并设置按钮间隔距离
+                let buttons = document.querySelectorAll('button');
+                let intervalOfButton = ((selfCardGroup.offsetWidth - 300) - 3 * buttons[0].offsetWidth) >> 1;
+                buttons[0].style.marginLeft = '150px';
+                buttons[1].style.marginLeft = `${intervalOfButton}px`;
+                buttons[2].style.marginLeft = `${intervalOfButton}px`;
+
+                // 设置自己出牌展示区位置
+                let selfShowCard = document.getElementById('self-show-card');
+                selfShowCard.style.left = `${posLeft}px`;
+                selfShowCard.style.top = `${parseInt(selfButtonGroup.style.top, 10) - 1.2 * selfCardGroupHeight}px`;
+
+                // 设置左边玩家出牌展示区位置
+                let leftShowCard = document.getElementById('left-show-card');
+                leftShowCard.style.left = '0px';
+                leftShowCard.style.top = `${0.7 * posTop}px`;
+
+                // 设置右边玩家出牌展示区位置
+                let rightShowCard = document.getElementById('right-show-card');
+                rightShowCard.style.left = `${document.documentElement.clientWidth - selfCardGroupWidth}px`;
+                rightShowCard.style.top = `${0.7 * posTop}px`;
+            }
+
+            Autosize();
+
+            //当浏览器页面发生改变时自适应
+            window.onresize = () => Autosize();
+        }
     } else {
         document.body.innerHTML = 'This browser does not support canvas.';
-    }
-</script>
-<script>
-    window.onload = function () {
-
-        document.getElementById('playCard').addEventListener('click', () => {
-            let selfShowCard = document.getElementById('self-show-card');
-            selfShowCard.innerHTML = '';
-            let playCards = document.querySelectorAll('img.card-selected');
-            for (let nodeImg of playCards) {
-                nodeImg.onmousedown = () => { };
-                nodeImg.onmouseenter = () => { };
-                nodeImg.style.transform = `scale(0.8)`;
-                selfShowCard.appendChild(nodeImg)
-            }
-        })
-
-        document.getElementById('playCancel').addEventListener('click', () => {
-            let playCards = document.querySelectorAll('img.card-selected');
-            for (let nodeImg of playCards) {
-                nodeImg.classList.remove('card-selected');
-            }
-        })
-
-        function Autosize() {
-            let selfCardGroup = document.getElementById('container-self');
-            let leftCardGroup = document.getElementById('container-left');
-            let rightCardGroup = document.getElementById('container-right');
-            let selfCardGroupWidth = selfCardGroup.offsetWidth;
-            let selfCardGroupHeight = selfCardGroup.offsetHeight;
-            let posLeft = (document.documentElement.clientWidth - selfCardGroupWidth) >> 1;
-            let posTop = (document.documentElement.clientHeight - selfCardGroupHeight) >> 1;
-
-            // 设置牌组放置位置
-            selfCardGroup.style.left = posLeft + 'px';
-            selfCardGroup.style.top = 1.5 * posTop + 'px';
-
-            leftCardGroup.style.left = `${parseInt(selfCardGroup.style.left, 10) - leftCardGroup.offsetWidth}px`;
-            leftCardGroup.style.top = 0.5 * posTop + 'px';
-
-            rightCardGroup.style.left = `${parseInt(selfCardGroup.style.left, 10) + selfCardGroupWidth}px`;
-            rightCardGroup.style.top = 0.5 * posTop + 'px';
-
-            // 设置自身信息位置
-            let selfInfo = document.getElementById('self-info');
-            selfInfo.style.left = `${posLeft - selfInfo.offsetWidth}px`;
-            selfInfo.style.top = selfCardGroup.style.top;
-
-            // 设置按钮组位置
-            let selfButtonGroup = document.getElementById('self-button-group');
-            selfButtonGroup.style.left = selfCardGroup.style.left;
-            selfButtonGroup.style.top = `${parseInt(selfCardGroup.style.top, 10) - 2 * selfButtonGroup.offsetHeight}px`;
-            selfButtonGroup.style.width = selfCardGroup.offsetWidth + 'px';
-
-            // 计算并设置按钮间隔距离
-            let buttons = document.querySelectorAll('button');
-            let intervalOfButton = ((selfCardGroup.offsetWidth - 300) - 3 * buttons[0].offsetWidth) >> 1;
-            buttons[0].style.marginLeft = '150px';
-            buttons[1].style.marginLeft = `${intervalOfButton}px`;
-            buttons[2].style.marginLeft = `${intervalOfButton}px`;
-
-            // 设置出牌展示区位置
-            let selfShowCard = document.getElementById('self-show-card');
-            selfShowCard.style.left = `${posLeft + 100}px`;
-            selfShowCard.style.top = `${parseInt(selfButtonGroup.style.top, 10) - 1.5 * selfCardGroupHeight}px`;
-        }
-
-        Autosize();
-
-        //当浏览器页面发生改变时自适应
-        window.onresize = () => Autosize();
-
     }
 </script>
 
