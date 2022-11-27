@@ -16,6 +16,7 @@
             <span id="clock-t" class="tag is-danger">30</span>
         </div>
     </div>
+    <div id="wait-show"></div>
     <div id="self-show-card"></div>
     <div id="left-show-card"></div>
     <div id="right-show-card"></div>
@@ -25,25 +26,75 @@
         <button class="button is-danger" id="playNone">不出</button>
     </div>
     <div id="self-info">
-        <span class="tag is-success">身份</span>
-        <span class="tag is-primary">120万</span>
-        <span class="tag is-link">17</span>
-        <span class="tag is-warning">昵称</span>
-        <span class="tag is-info">称号</span>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-dark">身份</span>
+                <span class="tag is-info">地主</span>
+            </div>
+        </div>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-dark">资金</span>
+                <span class="tag is-info">1200万</span>
+            </div>
+        </div>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-dark">牌数</span>
+                <span class="tag is-info">17</span>
+            </div>
+        </div>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-dark">昵称</span>
+                <span class="tag is-info">跳跳虎</span>
+            </div>
+        </div>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-dark">称号</span>
+                <span class="tag is-info">国王</span>
+            </div>
+        </div>
     </div>
     <div id="container-self"></div>
     <div id="container-left">
-        <span class="tag is-success">身份</span>
-        <span class="tag is-primary">120万</span>
-        <span class="tag is-info">17</span>
-        <span class="tag is-warning">昵称</span>
-        <span class="tag is-info">称号</span>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-info">农民</span>
+                <span class="tag is-dark">身份</span>
+            </div>
+        </div>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-info">200万</span>
+                <span class="tag is-dark">资金</span>
+            </div>
+        </div>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-info">17</span>
+                <span class="tag is-dark">牌数</span>
+            </div>
+        </div>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-info">哆啦A梦</span>
+                <span class="tag is-dark">昵称</span>
+            </div>
+        </div>
+        <div class="control">
+            <div class="tags has-addons">
+                <span class="tag is-info">亲王</span>
+                <span class="tag is-dark">称号</span>
+            </div>
+        </div>
     </div>
     <div id="container-right">
         <div class="control">
             <div class="tags has-addons">
                 <span class="tag is-dark">身份</span>
-                <span class="tag is-info">地主</span>
+                <span class="tag is-info">农民</span>
             </div>
         </div>
         <div class="control">
@@ -78,10 +129,6 @@
         padding: 0
     }
 
-    /* div span {
-        width: 100%;
-    } */
-
     .control {
         margin-top: 1px;
     }
@@ -102,14 +149,18 @@
         width: 120px;
         height: 120px;
         position: absolute;
-        border: 1px solid skyblue;
+        /* border: 1px solid skyblue; */
+    }
+
+    #container-left .control {
+        float: right;
     }
 
     #container-right {
         width: 120px;
         height: 120px;
         position: absolute;
-        border: 1px solid orange;
+        /* border: 1px solid orange; */
     }
 
     #self-button-group {
@@ -147,8 +198,8 @@
     }
 </style>
 <script src="../release/poker.min.js"></script>
-<script>
-
+<script type="module">
+    import Enumerable from 'https://cdn.bootcdn.net/ajax/libs/linq.js/4.0.1/linq.js'
     if (window.Poker) {
 
         class Card {
@@ -178,6 +229,21 @@
             'jokerh': 17,
         }
 
+        let mapPlayCardType = {
+            'DanZhang': '单张',
+            'DuiZi': '对子',
+            'SanBuDai': '三不带',
+            'SanDaiYi': '三带一',
+            'SanDaiEr': '三带二',
+            'ShunZi': '顺子',
+            'LianDui': '连对',
+            'FeiJi': '飞机',
+            'ZhaDan': '炸弹',
+            'SiDaiEr': '四带二',
+            'WangZha': '王炸',
+            'Unknown': '牌型不符合规范'
+        }
+
         // 生成卡组
         console.time('GenerateCardTime');
         let suits = ['hearts', 'diamonds', 'spades', 'clubs'];
@@ -197,9 +263,6 @@
         cards.push(card)
         card = new Card('jokerh', 'hearts', Poker.getCardData(120, 'hearts', 'joker'), mapValue['jokerh'])
         cards.push(card)
-        // cards.forEach(card => {
-        //     console.log(card);
-        // });
         console.log('cards length:', cards.length);
         console.timeEnd('GenerateCardTime');
 
@@ -350,6 +413,84 @@
             }, 1000);
         }
 
+        // 出牌规则检测
+        function PlayCardCheck(cards) {
+            let selectedCardCount = cards.length;
+
+            // 单张
+            if (selectedCardCount == 1) {
+                return 'DanZhang';
+            }
+
+            // 对子
+            if (selectedCardCount == 2 && cards[0] == cards[1]) {
+                return 'DuiZi';
+            }
+
+            // 按值分组
+            let gs = Enumerable.from(cards).groupBy(card => card);
+            let gsCount = gs.count();
+
+            // 三不带
+            if (selectedCardCount == 3 && gsCount == 1) {
+                return 'SanBuDai';
+            }
+
+            // 三带一
+            if (selectedCardCount == 4 && (gs.where(a => a.count() == 3).count() == 1)) {
+                return 'SanDaiYi';
+            }
+
+            // 三带二
+            if ((selectedCardCount == 5) && (gsCount == 2)
+                && (gs.where(a => a.count() == 3).count() == 1)) {
+                return 'SanDaiEr';
+            }
+
+
+            // 顺子
+            if (selectedCardCount >= 5 && selectedCardCount == gsCount) {
+                cards = cards.sort((a, b) => a > b);
+                if ((cards[0] - cards[selectedCardCount - 1]) == (selectedCardCount - 1)) {
+                    return 'ShunZi'
+                }
+            }
+
+            // 连对
+            if (selectedCardCount >= 6 && (gs.where(a => a.count() == 2).count() == gsCount)) {
+                cards = cards.sort((a, b) => a > b);
+                if ((cards[0] - cards[selectedCardCount - 1]) == (gsCount - 1)) {
+                    return 'LianDui'
+                }
+            }
+
+            // 飞机
+            if (selectedCardCount >= 6) {
+                let g3Count = gs.where(a => a.count() == 3).count();
+                if (selectedCardCount == g3Count * 4 || selectedCardCount == g3Count * 5) {
+                    return 'FeiJi';
+                }
+            }
+
+            // 炸弹
+            if (selectedCardCount == 4 && gsCount == 1) {
+                return 'ZhaDan';
+            }
+
+            // 四带二
+            if ((selectedCardCount == 6 || selectedCardCount == 8)
+                && (gs.where(a => a.count() == 4).count() == 1)
+                && (gsCount == 2 || gsCount == 3)) {
+                return 'SiDaiEr';
+            }
+
+            // 王炸
+            if (selectedCardCount == 2 && (cards[0] + cards[1]) == 33) {
+                return 'WangZha';
+            }
+            return 'Unknown';
+        }
+
         window.onload = function () {
 
             // 监听玩家出牌事件
@@ -357,11 +498,24 @@
                 let selfShowCard = document.getElementById('self-show-card');
                 selfShowCard.innerHTML = '';
                 let playCards = document.querySelectorAll('img.card-selected');
+
+                // 检测牌型
+                let arrPlayCards = [];
+                for (const nodeImg of playCards) {
+                    arrPlayCards.push(parseInt(nodeImg.value));
+                }
+                let playCardType = PlayCardCheck(arrPlayCards);
+                console.log(mapPlayCardType[playCardType]);
+                if (playCardType == 'Unknown') {
+                    return
+                }
+
+                // 出牌动画
                 for (let nodeImg of playCards) {
                     nodeImg.onmousedown = () => { };
                     nodeImg.onmouseenter = () => { };
                     nodeImg.style.transform = `scale(0.8)`;
-                    selfShowCard.appendChild(nodeImg)
+                    selfShowCard.appendChild(nodeImg);
                 }
             })
 
@@ -424,7 +578,7 @@
                 let rightShowCard = document.getElementById('right-show-card');
                 rightShowCard.style.left = `${document.documentElement.clientWidth - selfCardGroupWidth}px`;
                 rightShowCard.style.top = `${0.7 * posTop}px`;
-                
+
                 // 设置自己定时器的位置
                 let eleClock = document.getElementById('clock');
                 eleClock.style.left = 0.9 * posLeft + 'px'
