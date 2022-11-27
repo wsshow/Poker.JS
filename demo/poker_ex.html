@@ -10,10 +10,22 @@
 </head>
 
 <body>
-    <div id="clock" class="control" style="display: none;">
+    <div id="clock-self" class="control" style="display: none;">
         <div class="tags has-addons">
             <span class="tag is-link">剩余出牌时间(秒)</span>
-            <span id="clock-t" class="tag is-danger">30</span>
+            <span id="clock-self-t" class="tag is-danger">30</span>
+        </div>
+    </div>
+    <div id="clock-left" class="control" style="display: none;">
+        <div class="tags has-addons">
+            <span class="tag is-link">剩余出牌时间(秒)</span>
+            <span id="clock-left-t" class="tag is-danger">30</span>
+        </div>
+    </div>
+    <div id="clock-right" class="control" style="display: none;">
+        <div class="tags has-addons">
+            <span class="tag is-link">剩余出牌时间(秒)</span>
+            <span id="clock-right-t" class="tag is-danger">30</span>
         </div>
     </div>
     <div id="wait-show-card"></div>
@@ -204,6 +216,8 @@
     }
 </style>
 <script src="../release/poker.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/layer/3.5.1/layer.min.js"></script>
 <script type="module">
     import Enumerable from 'https://cdn.bootcdn.net/ajax/libs/linq.js/4.0.1/linq.js'
     if (window.Poker) {
@@ -419,10 +433,8 @@
         document.oncontextmenu = () => false;
 
         // 出牌倒计时
-        function CardClock() {
-            let eleClock = document.getElementById('clock');
+        function CardClock(eleClock, eleClockT) {
             eleClock.style.display = '';
-            let eleClockT = document.getElementById('clock-t');
             let tm = 30;
             let intervalID = window.setInterval(() => {
                 if (--tm == 0) {
@@ -526,6 +538,7 @@
                 }
                 let playCardType = PlayCardCheck(arrPlayCards);
                 console.log(mapPlayCardType[playCardType]);
+                layer.msg(mapPlayCardType[playCardType]);
                 if (playCardType == 'Unknown') {
                     return
                 }
@@ -574,7 +587,7 @@
                 // 设置按钮组位置
                 let selfButtonGroup = document.getElementById('self-button-group');
                 selfButtonGroup.style.left = selfCardGroup.style.left;
-                selfButtonGroup.style.top = `${parseInt(selfCardGroup.style.top, 10) - 2 * selfButtonGroup.offsetHeight}px`;
+                selfButtonGroup.style.top = `${parseInt(selfCardGroup.style.top, 10) - 1.5 * selfButtonGroup.offsetHeight}px`;
                 selfButtonGroup.style.width = selfCardGroup.offsetWidth + 'px';
 
                 // 计算并设置按钮间隔距离
@@ -605,13 +618,27 @@
                 rightShowCard.style.top = `${0.7 * posTop}px`;
 
                 // 设置自己定时器的位置
-                let eleClock = document.getElementById('clock');
+                let eleClock = document.getElementById('clock-self');
                 eleClock.style.left = 0.9 * posLeft + 'px'
                 eleClock.style.top = `${parseInt(selfButtonGroup.style.top, 10) + 5}px`;
+
+                // 设置左边定时器的位置
+                let eleLeftClock = document.getElementById('clock-left');
+                eleLeftClock.style.left = '0px';
+                eleLeftClock.style.top = `${0.8 * posTop}px`;
+                // eleLeftClock.style.transform = 'rotate(90deg)'
+
+                // 设置右边定时器的位置
+                let eleRightClock = document.getElementById('clock-right');
+                eleRightClock.style.left = `${document.documentElement.clientWidth - 1.2 * rightCardGroup.offsetWidth}px`;
+                eleRightClock.style.top = `${0.8 * posTop}px`;
+                // eleRightClock.style.transform = 'rotate(-90deg)'
             }
 
             Autosize();
-            CardClock();
+            CardClock(document.getElementById('clock-self'), document.getElementById('clock-self-t'));
+            CardClock(document.getElementById('clock-left'), document.getElementById('clock-left-t'));
+            CardClock(document.getElementById('clock-right'), document.getElementById('clock-right-t'));
 
             //当浏览器页面发生改变时自适应
             window.onresize = () => Autosize();
