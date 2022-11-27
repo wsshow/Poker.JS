@@ -16,7 +16,7 @@
             <span id="clock-t" class="tag is-danger">30</span>
         </div>
     </div>
-    <div id="wait-show"></div>
+    <div id="wait-show-card"></div>
     <div id="self-show-card"></div>
     <div id="left-show-card"></div>
     <div id="right-show-card"></div>
@@ -164,6 +164,12 @@
     }
 
     #self-button-group {
+        position: absolute;
+    }
+
+    #wait-show-card {
+        width: 270px;
+        height: 120px;
         position: absolute;
     }
 
@@ -327,7 +333,6 @@
         cards_B = cards_B.sort((a, b) => {
             return b.Value - a.Value;
         });
-        // cards_B = cards_B.slice(0, 2);
         let leftShowCard = document.getElementById('left-show-card');
         for (const k in cards_B) {
             card = cards_B[k]
@@ -359,7 +364,6 @@
         cards_C = cards_C.sort((a, b) => {
             return b.Value - a.Value;
         });
-        // cards_C = cards_C.slice(0, 2);
         let rightShowCard = document.getElementById('right-show-card');
         for (const k in cards_C) {
             card = cards_C[k]
@@ -386,6 +390,22 @@
             rightShowCard.appendChild(nodeImg)
         }
         rightShowCard.style.transform = 'rotate(-90deg)'
+
+        let cards_Wait = cards.slice(51, 54);
+        cards_Wait = cards_Wait.sort((a, b) => {
+            return b.Value - a.Value;
+        });
+        let waitShowCard = document.getElementById('wait-show-card');
+        let cardBack = Poker.getBackData(120, '#7A7BB8', '#2E319C');
+        for (const card of cards_Wait) {
+            nodeImg = document.createElement("img");
+            nodeImg.src = cardBack;
+            nodeImg.title = card.Point + '-' + card.Suit;
+            nodeImg.value = card.Value;
+            nodeImg.draggable = false;
+            nodeImg.classList.add('unselectable');
+            waitShowCard.appendChild(nodeImg)
+        }
 
         document.onmousedown = (e) => {
             bLeftMouseDown = true;
@@ -563,6 +583,11 @@
                 buttons[0].style.marginLeft = '150px';
                 buttons[1].style.marginLeft = `${intervalOfButton}px`;
                 buttons[2].style.marginLeft = `${intervalOfButton}px`;
+
+                // 设置待展示牌区域位置
+                let waitShowCard = document.getElementById('wait-show-card');
+                waitShowCard.style.left = `${(document.documentElement.clientWidth - waitShowCard.offsetWidth) >> 1}px`;
+                waitShowCard.style.top = '0px';
 
                 // 设置自己出牌展示区位置
                 let selfShowCard = document.getElementById('self-show-card');
