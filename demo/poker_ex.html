@@ -499,7 +499,9 @@
             // 飞机
             if (selectedCardCount >= 6) {
                 let g3Count = gs.where(a => a.count() == 3).count();
-                if (selectedCardCount == g3Count * 4 || selectedCardCount == g3Count * 5) {
+                if (selectedCardCount == g3Count * 3 ||
+                    selectedCardCount == g3Count * 4 ||
+                    selectedCardCount == g3Count * 5) {
                     return 'FeiJi';
                 }
             }
@@ -626,13 +628,11 @@
                 let eleLeftClock = document.getElementById('clock-left');
                 eleLeftClock.style.left = '0px';
                 eleLeftClock.style.top = `${0.8 * posTop}px`;
-                // eleLeftClock.style.transform = 'rotate(90deg)'
 
                 // 设置右边定时器的位置
                 let eleRightClock = document.getElementById('clock-right');
                 eleRightClock.style.left = `${document.documentElement.clientWidth - 1.2 * rightCardGroup.offsetWidth}px`;
                 eleRightClock.style.top = `${0.8 * posTop}px`;
-                // eleRightClock.style.transform = 'rotate(-90deg)'
             }
 
             Autosize();
