@@ -161,7 +161,6 @@
         width: 120px;
         height: 120px;
         position: absolute;
-        /* border: 1px solid skyblue; */
     }
 
     #container-left .control {
@@ -172,7 +171,6 @@
         width: 120px;
         height: 120px;
         position: absolute;
-        /* border: 1px solid orange; */
     }
 
     #self-button-group {
@@ -180,8 +178,8 @@
     }
 
     #wait-show-card {
-        width: 270px;
-        height: 120px;
+        width: 180px;
+        height: 80px;
         position: absolute;
     }
 
@@ -216,6 +214,7 @@
     }
 </style>
 <script src="../release/poker.min.js"></script>
+<script src="./js/network.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/layer/3.5.1/layer.min.js"></script>
 <script type="module">
@@ -264,6 +263,48 @@
             'Unknown': '牌型不符合规范'
         }
 
+        // 用户ID
+        let userid;
+
+        // 初始化websocket连接
+        let socket = network.getInstance();
+        socket.init('ws://127.0.0.1:9095/ws');
+        socket.onmessage((e) => {
+            let m = JSON.parse(e.data);
+            console.log(m);
+            switch (m.msgtype) {
+                case 100:
+                    userid = m.data;
+                    break;
+                case 101:
+                    (m.data.userid == userid) || PlayCardShow(m.data);
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        function GetDirection(id) {
+            var mapDirection = {
+                1: {
+                    1: 'self',
+                    2: 'right',
+                    3: 'left',
+                },
+                2: {
+                    2: 'self',
+                    3: 'right',
+                    1: 'left',
+                },
+                3: {
+                    3: 'self',
+                    1: 'right',
+                    2: 'left',
+                }
+            }
+            return mapDirection[userid][id];
+        }
+
         // 生成卡组
         console.time('GenerateCardTime');
         let suits = ['hearts', 'diamonds', 'spades', 'clubs'];
@@ -286,6 +327,12 @@
         console.log('cards length:', cards.length);
         console.timeEnd('GenerateCardTime');
 
+        // 建立点数和花色与图像的映射
+        let mapPointSuitToImg = new Map();
+        for (const card of cards) {
+            mapPointSuitToImg.set(card.Point + '-' + card.Suit, card.Img);
+        }
+
         // 洗牌算法
         function Shuffle(arr) {
             let len = arr.length, random
@@ -300,6 +347,26 @@
         console.time('ShuffleTime');
         cards = Shuffle(cards)
         console.timeEnd('ShuffleTime');
+
+        // 出牌展示
+        function PlayCardShow(data) {
+            let showCard = document.getElementById(`${GetDirection(data.userid)}-show-card`);
+            let cardtitle, nodeImg;
+            for (const k in data.cardtitles) {
+                cardtitle = data.cardtitles[k]
+                nodeImg = document.createElement("img");
+                if (k != 0) {
+                    nodeImg.style.marginLeft = '-60px';
+                    nodeImg.style.position = 'relative';
+                }
+                nodeImg.src = mapPointSuitToImg.get(cardtitle);
+                nodeImg.title = cardtitle;
+                nodeImg.draggable = false;
+                nodeImg.classList.add('unselectable');
+                nodeImg.style.transform = `scale(0.8)`;
+                showCard.appendChild(nodeImg);
+            }
+        }
 
         // 展示卡组
         let container = document.getElementById('container-self');
@@ -343,74 +410,12 @@
             container.appendChild(nodeImg)
         }
 
-        let cards_B = cards.slice(17, 34);
-        cards_B = cards_B.sort((a, b) => {
-            return b.Value - a.Value;
-        });
-        let leftShowCard = document.getElementById('left-show-card');
-        for (const k in cards_B) {
-            card = cards_B[k]
-            nodeImg = document.createElement("img");
-            if (k != 0) {
-                nodeImg.style.marginLeft = '-60px';
-                nodeImg.style.position = 'relative';
-                nodeImg.style.zIndex = k;
-            }
-            nodeImg.src = card.Img;
-            nodeImg.title = card.Point + '-' + card.Suit;
-            nodeImg.value = card.Value;
-            nodeImg.onmousedown = (e) => {
-                SelectedCard(e.target);
-            };
-            nodeImg.onmouseenter = (e) => {
-                if (bLeftMouseDown) {
-                    SelectedCard(e.target);
-                }
-            };
-            // 禁止图片选中或拖动
-            nodeImg.draggable = false;
-            nodeImg.classList.add('unselectable');
-            leftShowCard.appendChild(nodeImg)
-        }
-        leftShowCard.style.transform = 'rotate(90deg)'
-
-        let cards_C = cards.slice(34, 51);
-        cards_C = cards_C.sort((a, b) => {
-            return b.Value - a.Value;
-        });
-        let rightShowCard = document.getElementById('right-show-card');
-        for (const k in cards_C) {
-            card = cards_C[k]
-            nodeImg = document.createElement("img");
-            if (k != 0) {
-                nodeImg.style.marginLeft = '-60px';
-                nodeImg.style.position = 'relative';
-                nodeImg.style.zIndex = k;
-            }
-            nodeImg.src = card.Img;
-            nodeImg.title = card.Point + '-' + card.Suit;
-            nodeImg.value = card.Value;
-            nodeImg.onmousedown = (e) => {
-                SelectedCard(e.target);
-            };
-            nodeImg.onmouseenter = (e) => {
-                if (bLeftMouseDown) {
-                    SelectedCard(e.target);
-                }
-            };
-            // 禁止图片选中或拖动
-            nodeImg.draggable = false;
-            nodeImg.classList.add('unselectable');
-            rightShowCard.appendChild(nodeImg)
-        }
-        rightShowCard.style.transform = 'rotate(-90deg)'
-
         let cards_Wait = cards.slice(51, 54);
         cards_Wait = cards_Wait.sort((a, b) => {
             return b.Value - a.Value;
         });
         let waitShowCard = document.getElementById('wait-show-card');
-        let cardBack = Poker.getBackData(120, '#7A7BB8', '#2E319C');
+        let cardBack = Poker.getBackData(80, '#7A7BB8', '#2E319C');
         for (const card of cards_Wait) {
             nodeImg = document.createElement("img");
             nodeImg.src = cardBack;
@@ -529,21 +534,33 @@
 
             // 监听玩家出牌事件
             document.getElementById('playCard').addEventListener('click', () => {
+
                 let selfShowCard = document.getElementById('self-show-card');
                 selfShowCard.innerHTML = '';
                 let playCards = document.querySelectorAll('img.card-selected');
 
                 // 检测牌型
-                let arrPlayCards = [];
+                let arrPlayCards = [], arrCardsTitles = [], ss;
                 for (const nodeImg of playCards) {
                     arrPlayCards.push(parseInt(nodeImg.value));
+                    arrCardsTitles.push(nodeImg.title);
                 }
                 let playCardType = PlayCardCheck(arrPlayCards);
-                console.log(mapPlayCardType[playCardType]);
                 layer.msg(mapPlayCardType[playCardType]);
                 if (playCardType == 'Unknown') {
                     return
                 }
+
+                // 出牌通知
+                socket.send(JSON.stringify({
+                    "msgtype": 101,
+                    "data": {
+                        "userid": userid,
+                        "cardtype": playCardType,
+                        "playcards": arrPlayCards,
+                        "cardtitles": arrCardsTitles
+                    }
+                }));
 
                 // 出牌动画
                 for (let nodeImg of playCards) {
@@ -560,6 +577,11 @@
                 for (let nodeImg of playCards) {
                     nodeImg.classList.remove('card-selected');
                 }
+            })
+
+            // 监听玩家不出事件
+            document.getElementById('playNone').addEventListener('click', () => {
+                socket.close();
             })
 
             function Autosize() {
@@ -611,13 +633,13 @@
 
                 // 设置左边玩家出牌展示区位置
                 let leftShowCard = document.getElementById('left-show-card');
-                leftShowCard.style.left = '0px';
-                leftShowCard.style.top = `${0.7 * posTop}px`;
+                leftShowCard.style.left = `${leftCardGroup.offsetWidth}px`;
+                leftShowCard.style.top = `${0.6 * posTop}px`;
 
                 // 设置右边玩家出牌展示区位置
                 let rightShowCard = document.getElementById('right-show-card');
-                rightShowCard.style.left = `${document.documentElement.clientWidth - selfCardGroupWidth}px`;
-                rightShowCard.style.top = `${0.7 * posTop}px`;
+                rightShowCard.style.left = `${document.documentElement.clientWidth - rightShowCard.offsetWidth - rightCardGroup.offsetWidth}px`;
+                rightShowCard.style.top = `${0.6 * posTop}px`;
 
                 // 设置自己定时器的位置
                 let eleClock = document.getElementById('clock-self');
